@@ -3,16 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>地理空間データ照会 | JSTT</title>
+<title>地理空間データ照会 | SHINTATSU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ink: #1a1a1a;
-    --paper: #faf9f7;
-    --line: #d8d4cc;
-    --accent: #b04123;
-    --accent-soft: #f3e4de;
+    /* SHINTATSU ブランドカラー */
+    --red: #b04123;
+    --navy: #1C2951;
+    --blue: #4A69CF;
+    --ink: #161820;
+    --ink-sub: #4A4F5A;
+    --mute: #8A8F99;
+    --paper: #FBFAF7;
+    --paper-alt: #F2F0EA;
+    --line: rgba(28,41,81,.16);
+    --rule-red: rgba(176,65,35,.55);
+    --accent: #b04123;              /* 後方互換 */
     --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-    --sans: "Hiragino Sans", "BIZ UDPGothic", "Yu Gothic", sans-serif;
+    --sans: "Noto Sans JP", "Inter", "Hiragino Sans", sans-serif;
+    --serif: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+    --en: "Inter", "Noto Sans JP", sans-serif;
   }
   * { box-sizing: border-box; }
   body {
@@ -20,226 +32,266 @@
     background: var(--paper);
     color: var(--ink);
     font-family: var(--sans);
-    line-height: 1.6;
+    font-size: 20px;
+    line-height: 1.7;
   }
   header {
-    padding: 28px 24px 20px;
+    padding: 44px 40px 32px;
     border-bottom: 1px solid var(--line);
   }
+  header .brand-logo {
+    height: 76px;
+    width: auto;
+    display: block;
+    margin-bottom: 24px;
+  }
   header .eyebrow {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    color: var(--accent);
+    font-family: var(--en);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    color: var(--red);
     text-transform: uppercase;
   }
   header h1 {
-    margin: 4px 0 0;
-    font-size: 22px;
+    margin: 12px 0 0;
+    font-family: var(--serif);
+    font-size: 44px;
     font-weight: 700;
+    color: var(--navy);
+    padding-bottom: 14px;
+  }
+  header h1::after {
+    content: "";
+    display: block;
+    width: 96px;
+    height: 3px;
+    background: var(--red);
+    margin-top: 14px;
   }
   header p {
-    margin: 6px 0 0;
-    font-size: 13px;
-    color: #666;
+    margin: 8px 0 0;
+    font-size: 26px;
+    color: var(--ink-sub);
+    max-width: 60ch;
   }
   main {
-    max-width: 960px;
+    max-width: 1120px;
     margin: 0 auto;
-    padding: 24px;
+    padding: 32px;
   }
   .panel {
     background: #fff;
     border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
+    padding: 28px;
+    margin-bottom: 28px;
   }
   .panel h2 {
-    font-size: 13px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: #888;
-    margin: 0 0 14px;
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 0 0 20px;
   }
   .coord-row {
     display: flex;
-    gap: 12px;
+    gap: 18px;
     flex-wrap: wrap;
   }
   .field {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
     flex: 1;
-    min-width: 160px;
+    min-width: 220px;
   }
   .field label {
-    font-size: 12px;
-    color: #666;
+    font-size: 24px;
+    color: var(--ink-sub);
   }
   input[type=text], input[type=number], input[type=password] {
-    font-family: var(--mono);
-    font-size: 14px;
-    padding: 9px 10px;
+    font-family: var(--en);
+    font-variant-numeric: tabular-nums;
+    font-size: 28px;
+    padding: 12px 14px;
     border: 1px solid var(--line);
-    border-radius: 5px;
-    background: var(--paper);
+    border-radius: 6px;
+    background: #fff;
     color: var(--ink);
   }
-  input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  input:focus { outline: 2px solid var(--red); outline-offset: 1px; }
 
   .api-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 4px 16px;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 8px 28px;
   }
-  .api-group { margin-bottom: 10px; }
+  .api-group { margin-bottom: 16px; }
   .api-group h3 {
-    font-size: 11px;
-    color: var(--accent);
-    margin: 10px 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--red);
+    margin: 18px 0 8px;
     letter-spacing: 0.03em;
   }
   .api-item {
     display: flex;
     align-items: baseline;
-    gap: 6px;
-    font-size: 12.5px;
-    padding: 3px 0;
+    gap: 10px;
+    font-size: 25px;
+    padding: 5px 0;
   }
-  .api-item input { margin: 0; accent-color: var(--accent); }
+  .api-item input {
+    margin: 0;
+    width: 22px;
+    height: 22px;
+    accent-color: var(--red);
+  }
 
   .actions {
     display: flex;
-    gap: 10px;
+    gap: 16px;
     align-items: center;
-    margin-top: 16px;
+    margin-top: 24px;
+    flex-wrap: wrap;
   }
   button {
     font-family: var(--sans);
     font-weight: 700;
-    font-size: 14px;
-    padding: 10px 20px;
+    font-size: 28px;
+    padding: 14px 30px;
     border: none;
-    border-radius: 6px;
-    background: var(--accent);
+    border-radius: 8px;
+    background: var(--red);
     color: #fff;
     cursor: pointer;
   }
   button:disabled { opacity: 0.5; cursor: default; }
   button.secondary {
     background: transparent;
-    color: var(--accent);
-    border: 1px solid var(--accent);
+    color: var(--red);
+    border: 1px solid var(--red);
   }
   .status {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: #888;
+    font-family: var(--sans);
+    font-size: 24px;
+    color: var(--ink-sub);
   }
 
-  #results { display: flex; flex-direction: column; gap: 12px; }
+  #results { display: flex; flex-direction: column; gap: 18px; }
   .result-card {
     background: #fff;
     border: 1px solid var(--line);
-    border-left: 4px solid var(--accent);
-    border-radius: 6px;
-    padding: 14px 16px;
+    border-left: 6px solid var(--red);
+    border-radius: 8px;
+    padding: 22px 26px;
   }
   .result-card.empty { border-left-color: var(--line); opacity: 0.6; }
   .result-card h4 {
-    margin: 0 0 8px;
-    font-size: 14px;
+    margin: 0 0 14px;
+    font-family: var(--serif);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--navy);
   }
   .result-card .count {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: #888;
+    font-family: var(--en);
+    font-size: 22px;
+    color: var(--ink-sub);
     font-weight: 400;
   }
   pre {
-    background: var(--paper);
+    background: var(--paper-alt);
     border: 1px solid var(--line);
-    border-radius: 5px;
-    padding: 10px;
+    border-radius: 6px;
+    padding: 14px;
     font-family: var(--mono);
-    font-size: 11.5px;
+    font-size: 23px;
     overflow-x: auto;
-    max-height: 300px;
+    max-height: 520px;
     margin: 0;
   }
   .feature {
     border: 1px solid var(--line);
-    border-radius: 5px;
-    margin-top: 8px;
-    background: var(--paper);
+    border-radius: 6px;
+    margin-top: 12px;
+    background: #fff;
   }
   .feature > summary {
     cursor: pointer;
-    padding: 8px 10px;
-    font-size: 12.5px;
+    padding: 14px 16px;
+    font-size: 25px;
     font-weight: 700;
+    color: var(--navy);
     list-style: none;
   }
   .feature > summary::-webkit-details-marker { display: none; }
-  .feature > summary::before { content: "▸ "; color: var(--accent); }
+  .feature > summary::before { content: "▸ "; color: var(--red); }
   .feature[open] > summary::before { content: "▾ "; }
-  .feat-body { padding: 0 10px 10px; }
+  .feat-body { padding: 0 16px 16px; }
   .kv {
     width: 100%;
     border-collapse: collapse;
-    font-size: 12.5px;
+    font-size: 25px;
   }
   .kv th, .kv td {
     text-align: left;
     vertical-align: top;
-    padding: 5px 8px;
+    padding: 10px 14px;
     border-top: 1px solid var(--line);
   }
   .kv th {
     width: 42%;
-    color: #555;
+    color: var(--ink-sub);
     font-weight: 600;
-    background: #fbfaf8;
+    background: var(--paper-alt);
   }
   .kv td {
-    font-family: var(--mono);
-    font-size: 12px;
+    font-family: var(--sans);
+    font-variant-numeric: tabular-nums;
+    font-size: 24px;
+    color: var(--ink);
     word-break: break-word;
   }
   .geo {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: #888;
+    font-family: var(--en);
+    font-size: 22px;
+    color: var(--mute);
     font-weight: 400;
   }
-  .raw-toggle { margin-top: 10px; }
+  .raw-toggle { margin-top: 16px; }
   .raw-toggle > summary {
     cursor: pointer;
-    font-size: 11.5px;
-    color: #888;
+    font-size: 23px;
+    color: var(--ink-sub);
     list-style: revert;
   }
   .map-link {
     display: inline-block;
-    margin-top: 14px;
-    font-size: 12.5px;
-    color: var(--accent);
+    margin-top: 20px;
+    font-size: 25px;
+    color: var(--red);
   }
   footer {
-    max-width: 960px;
+    max-width: 1120px;
     margin: 0 auto;
-    padding: 10px 24px 40px;
-    font-size: 11px;
-    color: #999;
+    padding: 16px 32px 56px;
+    font-size: 22px;
+    color: var(--ink-sub);
+  }
+  footer .brand-line {
+    color: var(--navy);
+    font-weight: 700;
+    margin-bottom: 6px;
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="eyebrow">JSTT / GRC推進部 &mdash; 検証用プロトタイプ</div>
+  <img class="brand-logo" src="/logo_horizontal.png" alt="NIHON SHINTATSU Co., Ltd. &mdash; Trust and Achievements">
+  <div class="eyebrow">GRC推進部 &mdash; 検証用プロトタイプ</div>
   <h1>地理空間データ照会</h1>
   <p>不動産情報ライブラリAPI（国土交通省）を緯度経度から照会します。α版データを含むため、開示資料への転記前に必ず一次資料と突き合わせてください。</p>
 </header>
@@ -287,6 +339,7 @@
 </main>
 
 <footer>
+  <div class="brand-line">日本信達株式会社 / SHINTATSU</div>
   データ出典：不動産情報ライブラリ（国土交通省）／このツールは社内検証用のα版連携です。取得値の正確性は保証されません。
 </footer>
 
