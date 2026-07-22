@@ -118,6 +118,11 @@
     font-size: 24px;
     color: var(--ink-sub);
   }
+  .field label a {
+    color: var(--red);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
   input[type=text], input[type=number], input[type=password] {
     font-family: var(--en);
     font-variant-numeric: tabular-nums;
@@ -310,7 +315,7 @@
     <h2>1. 対象地点</h2>
     <div class="coord-row">
       <div class="field" style="flex: 2 1 360px;">
-        <label for="latlon">緯度・経度（Googleマップからコピー）</label>
+        <label for="latlon">緯度・経度（<a href="https://www.google.com/maps" target="_blank" rel="noopener">Googleマップからコピー</a>）</label>
         <input type="text" id="latlon" placeholder="例: 43.1814586884606, 141.02923643780812">
       </div>
       <div class="field" style="max-width: 140px;">
