@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>地理空間データ照会 | SHINTATSU</title>
+<title>地理空間MCP（Model Context Protocol） | SHINTATSU</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
@@ -69,6 +69,14 @@
     background: var(--red);
     margin-top: 14px;
   }
+  header h1 a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--rule-red);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
+  }
+  header h1 a:hover { color: var(--red); }
   header p {
     margin: 8px 0 0;
     font-size: 26px;
@@ -292,7 +300,7 @@
 <header>
   <img class="brand-logo" src="/logo_horizontal.png" alt="NIHON SHINTATSU Co., Ltd. &mdash; Trust and Achievements">
   <div class="eyebrow">不動産営業部　ー　検証用プロトタイプ</div>
-  <h1>地理空間データ照会</h1>
+  <h1><a href="https://www.mlit.go.jp/tochi_fudousan_kensetsugyo/tochi_fudousan_kensetsugyo_fr17_000001_00047.html" target="_blank" rel="noopener">地理空間MCP（Model Context Protocol）</a></h1>
   <p>不動産情報ライブラリAPI（国土交通省）を緯度経度から照会します。α版データを含むため、開示資料への転記前に必ず一次資料と突き合わせてください。</p>
 </header>
 
