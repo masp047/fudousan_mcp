@@ -314,7 +314,9 @@ document.getElementById("run").onclick = async () => {
     const json = await res.json();
 
     if (!res.ok || json.status === "error") {
-      status.textContent = `エラー: ${json.message || res.status}`;
+      // エラーメッセージはquery.py由来(message)とhandler.py由来(data)の両形式に対応
+      const errMsg = json.message || json.data || res.status;
+      status.textContent = `エラー: ${errMsg}`;
       runBtn.disabled = false;
       return;
     }
