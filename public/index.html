@@ -302,6 +302,46 @@ const API_NAMES = {
   27: "高潮浸水想定区域", 28: "津波浸水想定", 29: "土砂災害警戒区域",
   14: "防火・準防火地域", 23: "地区計画", 24: "高度利用地区", 19: "自然公園地域"
 };
+// 英語フィールド名 → 日本語ラベル（主に API 1 不動産取引価格情報 / XIT001）
+const LABELS = {
+  PriceCategory: "価格情報区分",
+  Type: "種類",
+  Region: "地域",
+  MunicipalityCode: "市区町村コード",
+  Prefecture: "都道府県名",
+  PrefectureCode: "都道府県コード",
+  Municipality: "市区町村名",
+  DistrictName: "地区名",
+  DistrictCode: "地区コード",
+  TradePrice: "取引価格（総額）",
+  PricePerUnit: "坪単価",
+  UnitPrice: "単価（㎡あたり）",
+  FloorPlan: "間取り",
+  Area: "面積（㎡）",
+  LandShape: "土地の形状",
+  Frontage: "間口（m）",
+  TotalFloorArea: "延床面積（㎡）",
+  BuildingYear: "建築年",
+  Structure: "建物の構造",
+  Use: "用途",
+  Purpose: "今後の利用目的",
+  Direction: "前面道路：方位",
+  Classification: "前面道路：種類",
+  Breadth: "前面道路：幅員（m）",
+  CityPlanning: "都市計画",
+  CoverageRatio: "建蔽率（%）",
+  FloorAreaRatio: "容積率（%）",
+  Period: "取引時期",
+  Renovation: "改装",
+  Remarks: "取引の事情等",
+  NearestStation: "最寄駅：名称",
+  TimeToNearestStation: "最寄駅：距離（分）",
+  Year: "年",
+  Quarter: "四半期",
+  name: "名称",
+  address: "住所",
+};
+
 const GROUPS = [
   ["不動産取引・評価", [1,2,3]],
   ["都市計画", [4,5,6,14,23,24]],
@@ -469,7 +509,8 @@ function renderKvTable(obj) {
       if (k.startsWith("_")) return;         // 内部フィールド(_id, _index等)は除外
       const val = formatValue(obj[k]);
       if (val === null) return;              // 空値はスキップ
-      rows.push([k, val]);
+      rows.push([LABELS[k] || k, val]);      // 英語キーは日本語ラベルに変換
+
     });
   }
 
@@ -512,6 +553,7 @@ function featureLabel(props) {
   const candidates = [
     "所在地", "所在及び地番", "標準地 所在地 所在地番", "標準地 所在地 市区町村名",
     "名称", "施設名称", "施設名", "駅名", "学校名", "市区町村名",
+    "DistrictName", "Municipality", "NearestStation", "Prefecture",
     "location number ia", "address", "name",
   ];
   for (const key of candidates) {
