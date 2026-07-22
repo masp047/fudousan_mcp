@@ -309,13 +309,9 @@
   <div class="panel">
     <h2>1. 対象地点</h2>
     <div class="coord-row">
-      <div class="field">
-        <label for="lat">緯度</label>
-        <input type="text" id="lat" placeholder="例: 43.06788044783783">
-      </div>
-      <div class="field">
-        <label for="lon">経度</label>
-        <input type="text" id="lon" placeholder="例: 141.3541094042721">
+      <div class="field" style="flex: 2 1 360px;">
+        <label for="latlon">緯度・経度（Googleマップからコピー）</label>
+        <input type="text" id="latlon" placeholder="例: 43.1814586884606, 141.02923643780812">
       </div>
       <div class="field" style="max-width: 140px;">
         <label for="year">対象年（任意）</label>
@@ -542,18 +538,21 @@ document.getElementById("select-none").onclick = () => {
 };
 
 document.getElementById("run").onclick = async () => {
-  const lat = document.getElementById("lat").value.trim();
-  const lon = document.getElementById("lon").value.trim();
+  const latlonRaw = document.getElementById("latlon").value.trim();
   const year = document.getElementById("year").value.trim();
   const token = document.getElementById("token").value.trim();
   const status = document.getElementById("status");
   const results = document.getElementById("results");
   const runBtn = document.getElementById("run");
 
-  if (!lat || !lon) {
-    status.textContent = "緯度・経度を入力してください";
+  // 「緯度, 経度」を分割（Googleマップ形式。全角カンマ・空白区切りも許容）
+  const parts = latlonRaw.split(/[,、\s]+/).filter(s => s !== "");
+  if (parts.length < 2 || isNaN(Number(parts[0])) || isNaN(Number(parts[1]))) {
+    status.textContent = "緯度・経度を「43.1814586884606, 141.02923643780812」の形式で入力してください";
     return;
   }
+  const lat = parts[0];  // Googleマップは「緯度, 経度」の順
+  const lon = parts[1];
 
   const checked = Array.from(document.querySelectorAll('.api-item input:checked')).map(cb => cb.value);
 
