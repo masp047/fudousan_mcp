@@ -62,6 +62,21 @@ class handler(BaseHTTPRequestHandler):
             )
             return
 
+        # 日本国内の緯度経度かをざっくり検証（緯度と経度の取り違えを検出）
+        if not (20.0 <= lat <= 46.0 and 122.0 <= lon <= 154.0):
+            _json_response(
+                self,
+                400,
+                {
+                    "status": "error",
+                    "message": (
+                        "緯度・経度が日本の範囲外です。緯度と経度が入れ替わっていないか"
+                        "ご確認ください（緯度は約20〜46、経度は約122〜154）。"
+                    ),
+                },
+            )
+            return
+
         apis_raw = qs.get("apis", [""])[0]
         if apis_raw.strip():
             try:

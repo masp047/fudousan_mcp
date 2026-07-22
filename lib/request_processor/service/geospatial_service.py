@@ -42,6 +42,13 @@ class GeospatialService:
         x, y, x_frac, y_frac = latlon_to_tile_fraction(coord.lat, coord.lon, ZOOM)
         muni_cd, lv_01_nm = latlon_to_address(coord.lat, coord.lon)
 
+        # 住所に解決できない座標（海上・国外など）は明快なエラーにする
+        if not muni_cd:
+            raise ValueError(
+                "指定された座標は日本国内の住所として解決できませんでした。"
+                "緯度・経度が正しいか（入れ替わっていないか）ご確認ください。"
+            )
+
         converted = {
             "lat": coord.lat,
             "lon": coord.lon,
