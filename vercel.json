@@ -1,7 +1,18 @@
 {
-  "functions": {
-    "api/query.py": {
-      "includeFiles": "lib/**"
+  "builds": [
+    {
+      "src": "api/query.py",
+      "use": "@vercel/python",
+      "config": { "includeFiles": "lib/**" }
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
     }
-  }
+  ],
+  "routes": [
+    { "src": "/api/query", "dest": "/api/query.py" },
+    { "src": "/", "dest": "/public/index.html" },
+    { "src": "/(.*)", "dest": "/public/$1" }
+  ]
 }
