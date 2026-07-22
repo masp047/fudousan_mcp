@@ -169,6 +169,58 @@
     max-height: 300px;
     margin: 0;
   }
+  .feature {
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    margin-top: 8px;
+    background: var(--paper);
+  }
+  .feature > summary {
+    cursor: pointer;
+    padding: 8px 10px;
+    font-size: 12.5px;
+    font-weight: 700;
+    list-style: none;
+  }
+  .feature > summary::-webkit-details-marker { display: none; }
+  .feature > summary::before { content: "▸ "; color: var(--accent); }
+  .feature[open] > summary::before { content: "▾ "; }
+  .feat-body { padding: 0 10px 10px; }
+  .kv {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  .kv th, .kv td {
+    text-align: left;
+    vertical-align: top;
+    padding: 5px 8px;
+    border-top: 1px solid var(--line);
+  }
+  .kv th {
+    width: 42%;
+    color: #555;
+    font-weight: 600;
+    background: #fbfaf8;
+  }
+  .kv td {
+    font-family: var(--mono);
+    font-size: 12px;
+    word-break: break-word;
+  }
+  .geo {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #888;
+    font-weight: 400;
+  }
+  .raw-toggle { margin-top: 10px; }
+  .raw-toggle > summary {
+    cursor: pointer;
+    font-size: 11.5px;
+    color: #888;
+    list-style: revert;
+  }
   .map-link {
     display: inline-block;
     margin-top: 14px;
@@ -332,15 +384,15 @@ document.getElementById("run").onclick = async () => {
       const name = API_NAMES[apiId] || `API ${apiId}`;
       const card = document.createElement("div");
 
-      if (!r) {
+      if (!r || !r.data) {
         card.className = "result-card empty";
         card.innerHTML = `<h4>${apiId}. ${name} <span class="count">該当データなし</span></h4>`;
       } else {
-        const features = (r.data && r.data.features) ? r.data.features : null;
+        const features = (r.data && Array.isArray(r.data.features)) ? r.data.features : null;
         const countLabel = features ? `${features.length}件` : "";
         card.className = "result-card";
-        card.innerHTML = `<h4>${apiId}. ${name} <span class="count">${countLabel}</span></h4>
-          <pre>${escapeHtml(JSON.stringify(r.data, null, 2))}</pre>`;
+        card.innerHTML = `<h4>${apiId}. ${name} <span class="count">${countLabel}</span></h4>`;
+        card.appendChild(renderResultBody(r.data, features));
       }
       results.appendChild(card);
     });
@@ -360,8 +412,130 @@ document.getElementById("run").onclick = async () => {
   }
 };
 
+// --- 結果を人が読める形に整形して描画する ---
+function renderResultBody(data, features) {
+  const box = document.createElement("div");
+
+  if (features && features.length) {
+    // GeoJSON: 地点(feature)ごとに項目表を作る
+    features.forEach((f, i) => box.appendChild(renderFeature(f, i, features.length)));
+  } else if (data && typeof data === "object") {
+    // GeoJSON以外: そのままキー値表で表示
+    box.appendChild(renderKvTable(data));
+  }
+
+  // 生データ(JSON)は折りたたみで残す（一次資料との突き合わせ・確認用）
+  const raw = document.createElement("details");
+  raw.className = "raw-toggle";
+  const sum = document.createElement("summary");
+  sum.textContent = "生データ (JSON) を表示";
+  const pre = document.createElement("pre");
+  pre.textContent = JSON.stringify(data, null, 2);
+  raw.appendChild(sum);
+  raw.appendChild(pre);
+  box.appendChild(raw);
+
+  return box;
+}
+
+function renderFeature(f, i, total) {
+  const props = (f && f.properties && typeof f.properties === "object") ? f.properties : (f || {});
+  const det = document.createElement("details");
+  det.className = "feature";
+  if (i === 0) det.open = true;  // 先頭は開いて表示
+
+  let label = featureLabel(props);
+  if (label.length > 40) label = label.slice(0, 40) + "…";
+  const geo = geomLabel(f && f.geometry);
+
+  const summary = document.createElement("summary");
+  summary.innerHTML = `${i + 1}. ${escapeHtml(label)}` + (geo ? ` <span class="geo">(${escapeHtml(geo)})</span>` : "");
+  det.appendChild(summary);
+
+  const body = document.createElement("div");
+  body.className = "feat-body";
+  body.appendChild(renderKvTable(props));
+  det.appendChild(body);
+  return det;
+}
+
+function renderKvTable(obj) {
+  const table = document.createElement("table");
+  table.className = "kv";
+  const rows = [];
+
+  if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+    Object.keys(obj).forEach(k => {
+      if (k.startsWith("_")) return;         // 内部フィールド(_id, _index等)は除外
+      const val = formatValue(obj[k]);
+      if (val === null) return;              // 空値はスキップ
+      rows.push([k, val]);
+    });
+  }
+
+  if (!rows.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 2;
+    td.innerHTML = '<span class="geo">表示できる項目がありません</span>';
+    tr.appendChild(td);
+    table.appendChild(tr);
+    return table;
+  }
+
+  rows.forEach(([k, v]) => {
+    const tr = document.createElement("tr");
+    const th = document.createElement("th");
+    th.textContent = k;
+    const td = document.createElement("td");
+    td.textContent = v;
+    tr.appendChild(th);
+    tr.appendChild(td);
+    table.appendChild(tr);
+  });
+  return table;
+}
+
+function formatValue(v) {
+  if (v === null || v === undefined) return null;
+  if (typeof v === "string") { const t = v.trim(); return t === "" ? null : t; }
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  if (typeof v === "object") {
+    try { const s = JSON.stringify(v); return (s === "{}" || s === "[]") ? null : s; }
+    catch (e) { return String(v); }
+  }
+  return String(v);
+}
+
+// 地点の見出しに使う代表的な値を探す（所在地・名称など）
+function featureLabel(props) {
+  const candidates = [
+    "所在地", "所在及び地番", "標準地 所在地 所在地番", "標準地 所在地 市区町村名",
+    "名称", "施設名称", "施設名", "駅名", "学校名", "市区町村名",
+    "location number ia", "address", "name",
+  ];
+  for (const key of candidates) {
+    if (props[key] != null && String(props[key]).trim() !== "") return String(props[key]).trim();
+  }
+  for (const k of Object.keys(props)) {
+    if (k.startsWith("_")) continue;
+    const v = props[k];
+    if (typeof v === "string" && v.trim() !== "") return v.trim();
+  }
+  return "データ";
+}
+
+function geomLabel(g) {
+  if (!g || !g.coordinates) return "";
+  if (g.type === "Point" && Array.isArray(g.coordinates) && g.coordinates.length >= 2) {
+    const lon = Number(g.coordinates[0]), lat = Number(g.coordinates[1]);
+    if (isFinite(lon) && isFinite(lat)) return `経度 ${lon.toFixed(6)}, 緯度 ${lat.toFixed(6)}`;
+  }
+  return g.type || "";
+}
+
 function escapeHtml(str) {
-  return str.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  return String(str).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 }
 </script>
 
