@@ -343,6 +343,11 @@
     <span class="status" id="status"></span>
   </div>
 
+  <div class="actions" id="result-actions" style="display: none; margin-bottom: 16px;">
+    <button type="button" class="secondary" id="dl-csv">CSVでダウンロード</button>
+    <button type="button" class="secondary" id="dl-json">JSONでダウンロード</button>
+  </div>
+
   <div id="results"></div>
 
 </main>
@@ -535,6 +540,9 @@ GROUPS.forEach(([label, ids]) => {
   wrap.appendChild(group);
 });
 
+// 直近の照会結果（ダウンロード用に保持）
+let lastResult = null;
+
 document.getElementById("select-all").onclick = () => {
   document.querySelectorAll('.api-item input').forEach(cb => cb.checked = true);
 };
@@ -569,6 +577,8 @@ document.getElementById("run").onclick = async () => {
   runBtn.disabled = true;
   status.textContent = "照会中...";
   results.innerHTML = "";
+  lastResult = null;
+  document.getElementById("result-actions").style.display = "none";
 
   try {
     const res = await fetch(`/api/query?${params.toString()}`);
@@ -614,6 +624,10 @@ document.getElementById("run").onclick = async () => {
       link.textContent = "→ 不動産情報ライブラリの地図で確認する";
       results.appendChild(link);
     }
+
+    // ダウンロード用に結果を保持し、ボタンを表示
+    lastResult = { apiResults, targetIds, input: data.input || { lat, lon }, mapUrl: data.map_url || null, lat, lon };
+    document.getElementById("result-actions").style.display = "flex";
   } catch (e) {
     status.textContent = `通信エラー: ${e}`;
   } finally {
@@ -799,6 +813,76 @@ function geomLabel(g) {
 function escapeHtml(str) {
   return String(str).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 }
+
+// --- 結果のダウンロード（CSV / JSON） ---
+function downloadBlob(filename, text, mime) {
+  const blob = new Blob([text], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function tsStamp() {
+  const d = new Date();
+  const p = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`;
+}
+
+function csvCell(v) {
+  const s = v == null ? "" : String(v);
+  return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+// 表示と同じ日本語ラベルで、地点・項目・値を1行ずつのCSVに（Excel対応・BOM付き）
+function buildCsv(res) {
+  const rows = [["API番号", "API名", "地点番号", "項目", "値"]];
+  res.apiResults.forEach((r, idx) => {
+    const apiId = res.targetIds[idx];
+    const apiName = API_NAMES[apiId] || `API ${apiId}`;
+    const features = (r && r.data && Array.isArray(r.data.features)) ? r.data.features : [];
+    if (!features.length) {
+      rows.push([apiId, apiName, "", "（該当データなし）", ""]);
+      return;
+    }
+    features.forEach((f, i) => {
+      const props = (f && f.properties && typeof f.properties === "object") ? f.properties : (f || {});
+      Object.keys(props).forEach(k => {
+        if (k.startsWith("_")) return;
+        const val = formatValue(props[k]);
+        if (val === null) return;
+        rows.push([apiId, apiName, i + 1, humanizeKey(k), val]);
+      });
+    });
+  });
+  return "﻿" + rows.map(r => r.map(csvCell).join(",")).join("\r\n");
+}
+
+function buildJson(res) {
+  return JSON.stringify({
+    input: res.input,
+    queried_at: new Date().toISOString(),
+    results: res.apiResults.map((r, idx) => ({
+      api_id: res.targetIds[idx],
+      api_name: API_NAMES[res.targetIds[idx]] || null,
+      data: r ? r.data : null,
+    })),
+    map_url: res.mapUrl || null,
+  }, null, 2);
+}
+
+document.getElementById("dl-csv").onclick = () => {
+  if (!lastResult) return;
+  downloadBlob(`不動産情報_${lastResult.lat}_${lastResult.lon}_${tsStamp()}.csv`, buildCsv(lastResult), "text/csv;charset=utf-8");
+};
+document.getElementById("dl-json").onclick = () => {
+  if (!lastResult) return;
+  downloadBlob(`不動産情報_${lastResult.lat}_${lastResult.lon}_${tsStamp()}.json`, buildJson(lastResult), "application/json");
+};
 </script>
 
 </body>
